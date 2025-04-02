@@ -130,14 +130,14 @@
       <h3>高電阻法</h3>
       <p>電壓測量值：<span id="result-vol-high"></span></p>
       <p>電流測量值：<span id="result-in-high"></span></p>
-      <p>電阻測量值 (V / A)：<span id="result-R-high"></span></p>
+      <p>所得之電阻測量值 (V / A)：<span id="result-R-high"></span></p>
       <p>誤差百分比<span id="PercentageError-high"></span></p>
     </div>
     <div class="result-column">
       <h3>低電阻法</h3>
       <p>電壓測量值：<span id="result-vol-low"></span></p>
       <p>電流測量值：<span id="result-in-low"></span></p>
-      <p>電阻測量值 (V / A)：<span id="result-R-low"></span></p>
+      <p>所得之電阻測量值 (V / A)：<span id="result-R-low"></span></p>
       <p>誤差百分比<span id="PercentageError-low"></span></p>
     </div>
   </div>
@@ -184,7 +184,7 @@
     const Ra1 = Vh / Ih; // 計算電阻測量值
     resultVolhigh.textContent = Vh.toFixed(5) + ' V'; // 更新電壓顯示1
     resultInhigh.textContent = Ih.toFixed(5) + ' A'; // 更新電流顯示1
-    resultRhigh.textContent = Ra1.toFixed(5) + ' Ω'; // 更新電阻顯示1
+    resultRhigh.textContent = Ra1.toFixed(2) + ' Ω'; // 更新電阻顯示1
     PercentageErrorhigh.textContent = ((Math.abs(Ra1 - R) / R) * 100).toFixed(3) + '%'; // 更新誤差百分比1
 
     // 計算低電阻法的不同數值
@@ -194,7 +194,7 @@
     const Ra2 = Vl / Il; // 計算電阻測量值
     resultVollow.textContent = Vl.toFixed(5) + ' V'; // 更新電壓顯示2
     resultInlow.textContent = Il.toFixed(5) + ' A'; // 更新電流顯示2
-    resultRlow.textContent = Ra2.toFixed(5) + ' Ω'; // 更新電阻顯示2
+    resultRlow.textContent = Ra2.toFixed(2) + ' Ω'; // 更新電阻顯示2
     PercentageErrorlow.textContent = ((Math.abs(Ra2 - R) / R) * 100).toFixed(3) + '%'; // 更新誤差百分比2
 
     // 在電路圖相應位置顯示數值（若輸入無效則顯示空白）
