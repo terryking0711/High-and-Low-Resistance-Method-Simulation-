@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>高低電阻法模擬</title>
+  <style>
+    /* 基礎排版樣式 */
+    body {  
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.5em;
+      margin-bottom: 0.5em;
+    }
+    label {
+      margin-right: 20px;
+      font-weight: bold;
+    }
+    input[type="number"] {
+      width: 80px;
+      padding: 4px;
+      margin-left: 4px;
+    }
+
+    /* 電路圖區域與動態數值顯示 */
+    #diagram-container {
+      position: relative;
+      display: inline-block;
+      margin: 20px 0px;
+    }
+    #diagram-container img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+    /* 定義覆蓋在電路圖上的文字位置 */
+    .overlay {
+      position: absolute;   
+      font-weight: bold;
+      color: #000;
+    }
+    /* 各元件數值的位置 (以百分比定位) */
+    #voltageValue1   { left: 29%; top: 18%; }
+    #voltageValue2   { left: 77%; top: 18%; } /* 新增 */
+    #variableResistor1 { left: 6%; top: 46%; } /* 新增 */
+    #variableResistor2 { left: 55%; top: 46%; } /* 新增 */
+    #resistanceValue1 { left: 25.5%; top: 46%; }
+    #ammeterValue1   { left: 34%; top: 38%; }
+    #voltmeterValue1 { left: 27%; top: 69%; }
+    #resistanceValue2 { left: 74.5%; top: 46%; }
+    #ammeterValue2   { left: 86%; top:  38%; }
+    #voltmeterValue2 { left: 70.2%; top: 69%; }
+
+      /* 調整計算結果區域樣式 */
+      #results {
+        margin-top: 20px;
+        font-size: 1.1em;
+        line-height: 1.5;
+        display: flex;
+        justify-content: center; /* 將內容集中排列 */
+        align-items: flex-start; /* 垂直對齊 */
+        gap: 20px; /* 縮短列之間的間距 */
+      }
+      .result-column {
+        flex: 0 1 300px; /* 限制每個欄位的寬度為最多 300px */
+        padding: 0 10px; /* 減少左右間距 */
+        text-align: left; /* 文字置中對齊 */
+        border: 1px solid #ccc; /* 可選：增加邊框以視覺分隔 */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 可選：增加陰影效果 */
+      }
+  </style>
+</head>
+<body>
+
+  <!-- 輸入欄位區域 -->
+  <h1>高低電阻法模擬網站 by 新竹高中王晨碩</h1>
+  <br />
+  <div id="inputs">
+    <label>輸入直流電電壓 (V): 
+      <input type="number" id="input-voltage" min="0" step="any" value="10" />
+    </label>
+    <label>安培計內電阻值 (Ω): 
+      <input type="number" id="input-ammeter" min="0" step="any" value="5" />
+    </label>
+    <label>伏特計內電阻值 (Ω): 
+      <input type="number" id="input-voltmeter" min="0" step="any" value="5000" />
+    </label>
+    <br />
+    <br />
+    <label>待測電阻值 (Ω): 
+      <input type="number" id="input-resistance" min="0" step="any" value="40" />
+    </label>
+    <label>可變電阻 (Ω): 
+      <select id="variable-resistor">
+        <option value="1000">1000</option>
+        <option value="800">800</option>
+        <option value="600">600</option>
+        <option value="400">400</option>
+        <option value="200">200</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- 電路圖及動態數值顯示區域 -->
+  <div id="diagram-container">
+    <br />
+    <!-- 使用者提供的圖一，顯示兩種接線方法的電路圖 -->
+    <img src="image.png" alt="高低電阻法電路圖示" />
+    <!-- 在電阻、安培計、伏特計位置旁顯示對應的值（圖一） -->
+    <div id="variableResistor1" class="overlay"></div> <!-- 新增 -->
+    <div id="resistanceValue1" class="overlay"></div>
+    <div id="ammeterValue1" class="overlay"></div>
+    <div id="voltmeterValue1" class="overlay"></div>
+    <div id="voltageValue1" class="overlay"></div> <!-- 新增 -->
+    <!-- 在電阻、安培計、伏特計位置旁顯示對應的值（圖二） -->
+    <div id="variableResistor2" class="overlay"></div> <!-- 新增 -->
+    <div id="resistanceValue2" class="overlay"></div>
+    <div id="ammeterValue2" class="overlay"></div>
+    <div id="voltmeterValue2" class="overlay"></div>
+    <div id="voltageValue2" class="overlay"></div> <!-- 新增 -->
+  </div>
+
+  <!-- 計算結果顯示區域 -->
+  <div id="results">
+    <div class="result-column">
+      <h3>高電阻法</h3>
+      <p>電壓測量值：<span id="result-vol-high"></span></p>
+      <p>電流測量值：<span id="result-in-high"></span></p>
+      <p>電阻測量值 (V / A)：<span id="result-R-high"></span></p>
+      <p>誤差百分比<span id="PercentageError-high"></span></p>
+    </div>
+    <div class="result-column">
+      <h3>低電阻法</h3>
+      <p>電壓測量值：<span id="result-vol-low"></span></p>
+      <p>電流測量值：<span id="result-in-low"></span></p>
+      <p>電阻測量值 (V / A)：<span id="result-R-low"></span></p>
+      <p>誤差百分比<span id="PercentageError-low"></span></p>
+    </div>
+  </div>
+  
+  <script>
+  // 取得輸入欄位和顯示元素的參照
+  const inputVolt = document.getElementById('input-voltage'); // 直流電電壓
+  const voltageVal1 = document.getElementById('voltageValue1');   // 電壓顯示1
+  const voltageVal2 = document.getElementById('voltageValue2');   // 電壓顯示2
+  const variableResistor = document.getElementById('variable-resistor'); // 可變電阻的選擇欄位
+  const variableResistor1 = document.getElementById('variableResistor1'); // 可變電阻的顯示位置1
+  const variableResistor2 = document.getElementById('variableResistor2'); // 可變電阻的顯示位置2
+  const inputRes = document.getElementById('input-resistance'); // 待測電阻值
+  const inputAmm = document.getElementById('input-ammeter');    // 安培計內電阻值
+  const inputVol = document.getElementById('input-voltmeter');    // 伏特計內電阻值
+  const resVal1 = document.getElementById('resistanceValue1');  // 待測電阻值顯示位置1
+  const resVal2 = document.getElementById('resistanceValue2');  // 待測電阻值顯示位置2
+  const ammVal1 = document.getElementById('ammeterValue1'); // 安培計內電阻值顯示位置1
+  const ammVal2 = document.getElementById('ammeterValue2'); // 安培計內電阻值顯示位置2
+  const volVal1 = document.getElementById('voltmeterValue1'); // 伏特計內電阻值顯示位置1
+  const volVal2 = document.getElementById('voltmeterValue2'); // 伏特計內電阻值顯示位置2
+  // Result demonstration
+  const resultVolhigh = document.getElementById('result-vol-high');
+  const resultInhigh = document.getElementById('result-in-high');
+  const resultRhigh = document.getElementById('result-R-high'); // 高電阻法測得電阻值
+  const resultVollow = document.getElementById('result-vol-low');
+  const resultInlow = document.getElementById('result-in-low');
+  const resultRlow = document.getElementById('result-R-low'); // 低電阻法測得電阻值
+  const PercentageErrorhigh = document.getElementById('PercentageError-high'); // 高電阻法誤差百分比
+  const PercentageErrorlow = document.getElementById('PercentageError-low'); // 低電阻法誤差百分比
+
+  // 定義一個更新顯示的函式
+  function updateDisplay() {
+    // 讀取輸入值並轉換為數字
+    const V = parseFloat(inputVolt.value); // 直流電電壓
+    const R = parseFloat(inputRes.value); //待測電阻真值
+    const Ra = parseFloat(inputAmm.value); // 安培計內電阻值
+    const Rv = parseFloat(inputVol.value);  // 伏特計內電阻值
+    const Rvar = parseFloat(variableResistor.value); // 可變電阻值
+    // 計算高電阻法的不同數值
+    const Rhcombined = Rv * (R + Ra) / (Rv + R + Ra); // 計算高電阻法的等效電阻值
+    const Vh = V * Rhcombined / (Rhcombined + Rvar); // 計算電壓測量值
+    const Ih = V * Rv / ((Rvar + Rhcombined)*(R + Ra + Rv)) // 計算電流測量值
+    const Ra1 = Vh / Ih; // 計算電阻測量值
+    resultVolhigh.textContent = Vh.toFixed(5) + ' V'; // 更新電壓顯示1
+    resultInhigh.textContent = Ih.toFixed(5) + ' A'; // 更新電流顯示1
+    resultRhigh.textContent = Ra1.toFixed(5) + ' Ω'; // 更新電阻顯示1
+    PercentageErrorhigh.textContent = ((Math.abs(Ra1 - R) / R) * 100).toFixed(3) + '%'; // 更新誤差百分比1
+
+    // 計算低電阻法的不同數值
+    const Rlcombined = R * Rv / (R + Rv); // 計算低電阻法的等效電阻值
+    const Vl = V * Rlcombined / (Rlcombined + Rvar + Ra); // 計算電壓測量值
+    const Il = V / (Rvar + Ra + Rlcombined) // 計算電流測量值
+    const Ra2 = Vl / Il; // 計算電阻測量值
+    resultVollow.textContent = Vl.toFixed(5) + ' V'; // 更新電壓顯示2
+    resultInlow.textContent = Il.toFixed(5) + ' A'; // 更新電流顯示2
+    resultRlow.textContent = Ra2.toFixed(5) + ' Ω'; // 更新電阻顯示2
+    PercentageErrorlow.textContent = ((Math.abs(Ra2 - R) / R) * 100).toFixed(3) + '%'; // 更新誤差百分比2
+
+    // 在電路圖相應位置顯示數值（若輸入無效則顯示空白）
+    resVal1.textContent = isNaN(R) ? '' : R + 'Ω';
+    resVal2.textContent = isNaN(R) ? '' : R + 'Ω';
+    ammVal1.innerHTML = isNaN(Ra) ? '' : '電流測量值約<br>' + Ih.toFixed(7) + 'A';
+    ammVal2.innerHTML = isNaN(Ra) ? '' : '電流測量值約<br>' + Il.toFixed(7) + 'A';
+    volVal1.innerHTML = isNaN(Rv) ? '' : '電壓測量值約<br>' + Vh.toFixed(4) + 'V';
+    volVal2.innerHTML = isNaN(Rv) ? '' : '電壓測量值約<br>' + Vl.toFixed(4) + 'V';
+    voltageVal1.textContent = isNaN(V) ? '' : '電壓' + V + 'V'; // 更新電壓顯示1
+    voltageVal2.textContent = isNaN(V) ? '' : '電壓' + V + 'V'; // 更新電壓顯示2
+    variableResistor1.textContent = isNaN(Rvar) ? '' : '可變電阻' + Rvar + 'Ω'; // 更新可變電阻顯示
+    variableResistor2.textContent = isNaN(Rvar) ? '' : '可變電阻' + Rvar + 'Ω'; // 更新可變電阻顯示
+
+  }
+
+
+  // 監聽輸入變化事件，即時更新顯示
+  variableResistor.addEventListener('input', updateDisplay);
+  inputVolt.addEventListener('input', updateDisplay);
+  inputRes.addEventListener('input', updateDisplay);
+  inputAmm.addEventListener('input', updateDisplay);
+  inputVol.addEventListener('input', updateDisplay);
+
+
+  // 頁面載入時執行一次更新顯示
+  updateDisplay();
+</script>
+
+</body>
+</html>
